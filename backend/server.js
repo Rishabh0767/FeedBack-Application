@@ -9,12 +9,13 @@ app.use(cors());          // Allow React frontend cross-origin requests
 app.use(express.json()); // Parse incoming JSON bodies
 
 // ── Routes ─────────────────────────────────────────────────────────────────
-const authRoutes = require('./routes/authRoutes');
-// Step 3 — adminRoutes will be added here
+const authRoutes  = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');  // Step 3
 // Step 4 — reviewRoutes will be added here
 // Step 5 — feedbackRoutes will be added here
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth',  authRoutes);
+app.use('/api/admin', adminRoutes);
 
 // ── Health Check ────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {

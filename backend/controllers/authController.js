@@ -6,15 +6,11 @@ require('dotenv').config();
 const SALT_ROUNDS = 10;
 const TOKEN_EXPIRY = '8h'; // Token valid for 8 hours
 
-/**
- * POST /api/auth/register
- * Creates a new user (admin use only in production, open here for initial seeding).
- * Body: { username, password, role }
- */
+
 const register = async (req, res) => {
     const { username, password, role } = req.body;
 
-    // --- Input Validation ---
+
     if (!username || !password) {
         return res.status(400).json({ message: 'Username and password are required.' });
     }
@@ -25,16 +21,16 @@ const register = async (req, res) => {
     const userRole = validRoles.includes(role) ? role : 'employee';
 
     try {
-        // Check for duplicate username
+
         const [existing] = await db.query('SELECT id FROM users WHERE username = ?', [username]);
         if (existing.length > 0) {
             return res.status(409).json({ message: 'Username already exists.' });
         }
 
-        // Hash password
+
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-        // Insert into DB
+
         const [result] = await db.query(
             'INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
             [username, hashedPassword, userRole]
@@ -52,21 +48,17 @@ const register = async (req, res) => {
     }
 };
 
-/**
- * POST /api/auth/login
- * Authenticates user credentials and returns a signed JWT.
- * Body: { username, password }
- */
+
 const login = async (req, res) => {
     const { username, password } = req.body;
 
-    // --- Input Validation ---
+
     if (!username || !password) {
         return res.status(400).json({ message: 'Username and password are required.' });
     }
 
     try {
-        // Fetch user from DB
+
         const [rows] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
 
         if (rows.length === 0) {
@@ -75,13 +67,13 @@ const login = async (req, res) => {
 
         const user = rows[0];
 
-        // Compare password with stored hash
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid credentials.' });
         }
 
-        // Sign JWT — include id, username, and role in payload
+
         const token = jwt.sign(
             { id: user.id, username: user.username, role: user.role },
             process.env.JWT_SECRET,
@@ -102,12 +94,6 @@ const login = async (req, res) => {
         res.status(500).json({ message: 'Server error during login.' });
     }
 };
-
-/**
- * GET /api/auth/me
- * Returns the currently authenticated user's profile.
- * Requires: verifyToken middleware.
- */
 const getMe = async (req, res) => {
     try {
         const [rows] = await db.query(
